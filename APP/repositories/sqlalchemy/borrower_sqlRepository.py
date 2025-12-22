@@ -3,10 +3,11 @@ from sqlalchemy.future import select
 from APP.domain.entities.Borrowers import Borrower
 from APP.repositories.Interfaces.borrower_repository import BorrowerRepository
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 from APP.models.borrower_model import BorrowerModel
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
+
 class BorrowerSQLRepository(BorrowerRepository):
     def __init__(self, session: Session):
         self.session = session
@@ -83,3 +84,7 @@ class BorrowerSQLRepository(BorrowerRepository):
             updated_at=b.updated_at
         )
         
+    async def get_borrower_by_email(self, email: str) -> Optional[BorrowerModel]:
+        stmt = select(BorrowerModel).where(BorrowerModel.email == email)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

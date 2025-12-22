@@ -44,10 +44,10 @@ async def update_book(book_id: UUID, book: BookUpdateSchema, service: BookServic
         id=book_id,
         title=book.title,
         ISBN=book.ISBN,
-        published_date=utcnow(),
+        published_date=datetime.utcnow(),
         author_id=book.author_id,
-        created_at=datetime.utcnow(),  # or fetch original created_at
-        updated_at=datetime.utcnow()
+        created_at=datetime.utcnow(),  # everytime we uopdate a book, we set created_at to now
+        updated_at=datetime.utcnow()   #same as above
     )
     return await service.update_book(book_id, entity)
 

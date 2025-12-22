@@ -73,8 +73,13 @@ class BookSQLRepository(BookRepository):
         db_book.author_id = book.author_id
         db_book.updated_at = book.updated_at
         self.session.add(db_book)
-        await self.session.commit()
-        await self.session.refresh(db_book)
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_book)
+        except IntegrityError:                         ## Handle unique constraint violation
+            await self.session.rollback()
+            raise HTTPException(status_code=400, detail="ISBN already exists")
+
         return Book(
             id=db_book.id,
             title=db_book.title,
