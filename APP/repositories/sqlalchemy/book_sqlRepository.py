@@ -4,6 +4,8 @@ from APP.domain.entities.books import Book
 from APP.repositories.Interfaces.book_repositories import BookRepository
 from uuid import UUID
 from typing import List
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
 from APP.models.book_model import BookModel
 class BookSQLRepository(BookRepository):
     def __init__(self, session: Session):
@@ -20,8 +22,12 @@ class BookSQLRepository(BookRepository):
             updated_at=book.updated_at
         )
         self.session.add(db_book)
-        await self.session.commit()
-        await self.session.refresh(db_book)
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_book)
+        except IntegrityError:                         ## Handle unique constraint violation
+            await self.session.rollback()
+            raise HTTPException(status_code=400, detail="ISBN already exists")
         return Book(
             id=db_book.id,
             title=db_book.title,

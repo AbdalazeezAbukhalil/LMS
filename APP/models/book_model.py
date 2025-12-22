@@ -16,3 +16,5 @@ class BookModel(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow)
     author = relationship("AuthorModel", back_populates="books")
+    
+    loans = relationship("LoanModel", back_populates="book")

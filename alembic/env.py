@@ -9,6 +9,7 @@ from APP.core.database import Base
 from APP.models.author_model import AuthorModel   # author 
 from APP.models.book_model import BookModel       # book
 from APP.models.borrower_model import BorrowerModel  # borrower
+from APP.models.loans_model import LoanModel     # loan
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 # this is the Alembic Config object, which provides

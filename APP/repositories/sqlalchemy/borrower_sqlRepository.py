@@ -5,7 +5,8 @@ from APP.repositories.Interfaces.borrower_repository import BorrowerRepository
 from uuid import UUID
 from typing import List
 from APP.models.borrower_model import BorrowerModel
-
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
 class BorrowerSQLRepository(BorrowerRepository):
     def __init__(self, session: Session):
         self.session = session
@@ -32,8 +33,13 @@ class BorrowerSQLRepository(BorrowerRepository):
             updated_at=borrower.updated_at
         )
         self.session.add(db_borrower)
-        await self.session.commit()
-        await self.session.refresh(db_borrower)
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_borrower)
+        except IntegrityError:
+            await self.session.rollback()
+            raise HTTPException(status_code=400, detail="Email already exists")
+        
         return Borrower(
             id=db_borrower.id,
             name=db_borrower.name,
@@ -48,8 +54,13 @@ class BorrowerSQLRepository(BorrowerRepository):
         db_borrower.email = borrower.email
         db_borrower.phone = borrower.phone
         self.session.add(db_borrower)
-        await self.session.commit()
-        await self.session.refresh(db_borrower)
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_borrower)
+        except IntegrityError:
+            await self.session.rollback()
+            raise HTTPException(status_code=400, detail="Email already exists")
+
         return Borrower(
             id=db_borrower.id,
             name=db_borrower.name,
