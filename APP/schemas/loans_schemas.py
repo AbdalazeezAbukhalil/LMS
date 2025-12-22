@@ -16,13 +16,10 @@ class LoanCreateSchema(BaseModel):
     borrower_id: UUID
     
 
-class LoanUpdateSchema(BaseModel):
-    book_id: UUID
-    borrower_id: UUID
-    loan_date: datetime
-    return_date: datetime
 
 class LoanReadSchema(LoanBaseSchema):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+# update schema isn't needed here since we only update the returned_date

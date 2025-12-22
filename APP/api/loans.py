@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from APP.services.book_service import BookService
 from APP.services.borrower_service import BorrowerService
 from APP.core.dependency_injection import get_loan_service
-from APP.schemas.loans_schemas import LoanCreateSchema, LoanUpdateSchema, LoanReadSchema
+from APP.schemas.loans_schemas import LoanCreateSchema, LoanReadSchema
 from APP.domain.entities.Loans import Loan
 from APP.services.loans_service import LoanService
 
@@ -29,25 +29,28 @@ async def create_loan(loan: LoanCreateSchema, service: LoanService = Depends(get
     )
     return await service.create_loan(entity)
 
-@router.get("/loans/{id}", response_model=LoanReadSchema)
-async def get_loans_for_borrower(id: UUID, service: LoanService = Depends(get_loan_service)):
-    loan_details = await service.get_loan_details(id)
-    if not loan_details:
-        raise HTTPException(status_code=404, detail="Loan not found")
-    return loan_details
+@router.get("/loans/{borrower_id}", response_model=List[LoanReadSchema])
+async def get_loans_history_for_borrower(
+    borrower_id: UUID,
+    service: LoanService = Depends(get_loan_service)
+):
+    loans = await service.get_loans_for_borrower(borrower_id)  # returns List[Loan]
+    if not loans:
+        raise HTTPException(status_code=404, detail="No loans found for this borrower")
+
+    return [
+        LoanReadSchema(
+            id=l.id,
+            book_id=l.book_id,
+            borrower_id=l.borrower_id,
+            loan_date=l.loan_date,
+            return_date=l.return_date,
+            created_at=l.created_at,
+            updated_at=l.updated_at
+        )
+        for l in loans
+    ]
 
 @router.put("/loans/{id}", response_model=LoanReadSchema)
-async def set_returned_date(id: UUID, loan: LoanUpdateSchema, service: LoanService = Depends(get_loan_service)):
-    loan_details = await service.get_loan_details(id)
-    if not loan_details:
-        raise HTTPException(status_code=404, detail="Loan not found")
-    entity = Loans(
-        id=id,
-        book_id=loan_details.book_id,
-        borrower_id=loan_details.borrower_id,
-        loan_date=loan_details.loan_date,
-        return_date=loan.return_date,
-        created_at=loan_details.created_at,
-        updated_at=datetime.utcnow()
-    )
-    return await service.update_loan(id, entity)
+async def set_returned_date(id: UUID, service: LoanService = Depends(get_loan_service)):
+    return await service.set_returned(id)

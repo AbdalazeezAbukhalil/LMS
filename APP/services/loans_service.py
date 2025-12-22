@@ -5,6 +5,7 @@ from APP.domain.entities.Loans import Loan
 from APP.repositories.Interfaces.loans_repository import LoansRepository
 from APP.services.book_service import BookService
 from APP.services.borrower_service import BorrowerService
+from APP.schemas.loans_schemas import LoanReadSchema
 
 
 class LoanService:
@@ -34,5 +35,6 @@ class LoanService:
     
     async def get_loans_for_borrower(self, borrower_id: UUID) -> List[Loan]:
         return await self.loans_repository.get_loans_for_borrower(borrower_id)
-    async def set_returned(self, loan_id: UUID) -> Loan:
+
+    async def set_returned(self, loan_id: UUID) -> LoanReadSchema:
         return await self.loans_repository.set_returned(loan_id)

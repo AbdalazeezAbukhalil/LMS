@@ -8,6 +8,7 @@ from APP.models.loans_model import LoanModel
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from datetime import datetime
+from APP.schemas.loans_schemas import LoanReadSchema
 
 class LoansSQLRepository(LoansRepository):
     def __init__(self, session: Session):
@@ -45,7 +46,6 @@ class LoansSQLRepository(LoansRepository):
             borrower_id=l.borrower_id,
             loan_date=l.loan_date,
             return_date=l.return_date,
-            returned=l.returned,
             created_at=l.created_at,
             updated_at=l.updated_at
         ) for l in loans]
@@ -61,7 +61,6 @@ class LoansSQLRepository(LoansRepository):
             borrower_id=l.borrower_id,
             loan_date=l.loan_date,
             return_date=l.return_date,
-            returned=l.returned,
             created_at=l.created_at,
             updated_at=l.updated_at
         ) for l in loans]
@@ -70,21 +69,24 @@ class LoansSQLRepository(LoansRepository):
         db_loan = await self.session.get(LoanModel, loan_id)
         if db_loan is None:
             raise HTTPException(status_code=404, detail="Loan not found")
+        if db_loan.return_date is not None:
+            raise HTTPException(status_code=400, detail="Loan is already returned")
+
         db_loan.return_date = datetime.utcnow()
-        self.session.add(db_loan)
+        db_loan.updated_at = datetime.utcnow()
         await self.session.commit()
         await self.session.refresh(db_loan)
-        return Loans(
+        return LoanReadSchema(
             id=db_loan.id,
             book_id=db_loan.book_id,
             borrower_id=db_loan.borrower_id,
             loan_date=db_loan.loan_date,
             return_date=db_loan.return_date,
-            returned=db_loan.returned,
             created_at=db_loan.created_at,
             updated_at=db_loan.updated_at
         )
     async def has_active_loan_for_book(self, book_id: UUID) -> bool:
+        
         stmt = select(LoanModel).where(
             LoanModel.book_id == book_id,
             LoanModel.return_date.is_(None)
