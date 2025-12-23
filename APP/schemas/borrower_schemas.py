@@ -7,7 +7,7 @@ from pydantic import Field
 PhoneStr = Annotated[
     str,
     Field(
-        min_length=7,
+        min_length=10,
         max_length=15,
         pattern=r"^\+?[0-9]+$"
     )
