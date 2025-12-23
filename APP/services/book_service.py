@@ -33,4 +33,5 @@ class BookService:
         active_loans = await self.loans_sqlRepository.has_active_loan_for_book(book_id)
         if active_loans:
             raise HTTPException(status_code=400, detail="Cannot delete book with active loans")
-        return await self.book_repository.delete_book(book_id)
+        raise HTTPException(status_code=404, detail="Book cannot be deleted since there was an active loan for it")
+        ## the deletion is prevented for now, if a book has active loans or had active loans in the past
