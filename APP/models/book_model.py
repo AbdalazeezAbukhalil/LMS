@@ -17,4 +17,4 @@ class BookModel(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow)
     author = relationship("AuthorModel", back_populates="books")
     
-    loans = relationship("LoanModel", back_populates="book")
+    loans = relationship("LoanModel", back_populates="book", cascade="all, delete-orphan")

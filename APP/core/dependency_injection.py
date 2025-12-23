@@ -21,8 +21,9 @@ async def get_author_service(session: AsyncSession = Depends(get_db)) -> AuthorS
     return service
 
 async def get_book_service(session: AsyncSession = Depends(get_db), author_service: AuthorService = Depends(get_author_service)) -> BookService:
-    repo = BookSQLRepository(session)
-    service = BookService(repo, author_service)
+    book_repo = BookSQLRepository(session)
+    loans_repo = LoansSQLRepository(session)
+    service = BookService(book_repo, author_service, loans_repo)
     return service
 
 async def get_borrower_service(session: AsyncSession = Depends(get_db)) -> BorrowerService:

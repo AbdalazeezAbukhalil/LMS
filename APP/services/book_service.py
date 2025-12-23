@@ -4,11 +4,12 @@ from fastapi import HTTPException
 from APP.domain.entities.books import Book
 from APP.repositories.Interfaces.book_repositories import BookRepository
 from APP.services.author_service import AuthorService
-
+from APP.repositories.sqlalchemy.loans_sqlRepository import LoansSQLRepository
 class BookService:
-    def __init__(self, book_repository: BookRepository, author_service: AuthorService):
+    def __init__(self, book_repository: BookRepository, author_service: AuthorService, loans_sqlRepository: LoansSQLRepository):
         self.book_repository = book_repository
         self.author_service = author_service
+        self.loans_sqlRepository = loans_sqlRepository
 
     async def get_books(self) -> List[Book]:
         return await self.book_repository.get_books()
@@ -29,4 +30,7 @@ class BookService:
         return await self.book_repository.update_book(book_id, book)
 
     async def delete_book(self, book_id: UUID) -> None:
+        active_loans = await self.loans_sqlRepository.has_active_loan_for_book(book_id)
+        if active_loans:
+            raise HTTPException(status_code=400, detail="Cannot delete book with active loans")
         return await self.book_repository.delete_book(book_id)

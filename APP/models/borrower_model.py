@@ -16,4 +16,4 @@ class BorrowerModel(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=func.now(), nullable=False)
 
-    loans = relationship("LoanModel", back_populates="borrower")
+    loans = relationship("LoanModel", back_populates="borrower", cascade="all, delete-orphan")
