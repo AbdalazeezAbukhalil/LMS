@@ -8,6 +8,7 @@ from APP.models.borrower_model import BorrowerModel
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 
+
 class BorrowerSQLRepository(BorrowerRepository):
     def __init__(self, session: Session):
         self.session = session
@@ -15,15 +16,18 @@ class BorrowerSQLRepository(BorrowerRepository):
     async def get_borrowers(self) -> List[Borrower]:
         result = await self.session.execute(select(BorrowerModel))
         borrowers = result.scalars().all()
-        return [Borrower(
-            id=b.id,
-            name=b.name,
-            email=b.email,
-            phone=b.phone,
-            created_at=b.created_at,
-            updated_at=b.updated_at
-        ) for b in borrowers]
-    
+        return [
+            Borrower(
+                id=b.id,
+                name=b.name,
+                email=b.email,
+                phone=b.phone,
+                created_at=b.created_at,
+                updated_at=b.updated_at,
+            )
+            for b in borrowers
+        ]
+
     async def create_borrower(self, borrower: Borrower) -> Borrower:
         db_borrower = BorrowerModel(
             id=borrower.id,
@@ -31,7 +35,7 @@ class BorrowerSQLRepository(BorrowerRepository):
             email=borrower.email,
             phone=borrower.phone,
             created_at=borrower.created_at,
-            updated_at=borrower.updated_at
+            updated_at=borrower.updated_at,
         )
         self.session.add(db_borrower)
         try:
@@ -40,15 +44,16 @@ class BorrowerSQLRepository(BorrowerRepository):
         except IntegrityError:
             await self.session.rollback()
             raise HTTPException(status_code=400, detail="Email already exists")
-        
+
         return Borrower(
             id=db_borrower.id,
             name=db_borrower.name,
             email=db_borrower.email,
             phone=db_borrower.phone,
-            created_at=db_borrower.created_at,  
-            updated_at=db_borrower.updated_at
+            created_at=db_borrower.created_at,
+            updated_at=db_borrower.updated_at,
         )
+
     async def update_borrower(self, borrower_id: UUID, borrower: Borrower) -> Borrower:
         db_borrower = await self.session.get(BorrowerModel, borrower_id)
         db_borrower.name = borrower.name
@@ -68,9 +73,9 @@ class BorrowerSQLRepository(BorrowerRepository):
             email=db_borrower.email,
             phone=db_borrower.phone,
             created_at=db_borrower.created_at,
-            updated_at=db_borrower.updated_at
+            updated_at=db_borrower.updated_at,
         )
-    
+
     async def get_borrower_details(self, borrower_id: UUID) -> Borrower:
         b = await self.session.get(BorrowerModel, borrower_id)
         if b is None:
@@ -81,9 +86,9 @@ class BorrowerSQLRepository(BorrowerRepository):
             email=b.email,
             phone=b.phone,
             created_at=b.created_at,
-            updated_at=b.updated_at
+            updated_at=b.updated_at,
         )
-        
+
     async def get_borrower_by_email(self, email: str) -> Optional[BorrowerModel]:
         stmt = select(BorrowerModel).where(BorrowerModel.email == email)
         result = await self.session.execute(stmt)

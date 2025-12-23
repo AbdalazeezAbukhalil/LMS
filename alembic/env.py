@@ -6,10 +6,13 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from APP.core.database import Base
-from APP.models.author_model import AuthorModel   # author 
-from APP.models.book_model import BookModel       # book
+from APP.models.author_model import AuthorModel  # author
+from APP.models.book_model import BookModel  # book
 from APP.models.borrower_model import BorrowerModel  # borrower
-from APP.models.loans_model import LoanModel     # loan
+from APP.models.loans_model import LoanModel  # loan
+from APP.models.user_model import UserModel  # user
+from APP.models.api_key_model import ApiKeyModel  # api key
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 # this is the Alembic Config object, which provides
@@ -70,9 +73,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

@@ -1,8 +1,10 @@
 # APP/services/author_service.py
 from typing import List
 from uuid import UUID
+from fastapi import HTTPException
 from APP.domain.entities.author import Author
 from APP.repositories.Interfaces.author_repositories import AuthorRepository
+
 
 class AuthorService:
     def __init__(self, author_repository: AuthorRepository):
@@ -21,4 +23,14 @@ class AuthorService:
         return await self.author_repository.update_author(author_id, author)
 
     async def delete_author(self, author_id: UUID) -> None:
+        if await self.author_repository.has_loans(author_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete author because one of their books has/had a loan.",
+            )
+        if await self.author_repository.has_books(author_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete author because they have books in the library.",
+            )
         return await self.author_repository.delete_author(author_id)

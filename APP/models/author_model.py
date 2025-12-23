@@ -5,6 +5,7 @@ from datetime import datetime
 from APP.core.database import Base
 from sqlalchemy.orm import relationship
 
+
 class AuthorModel(Base):
     __tablename__ = "authors"
 
@@ -12,6 +13,8 @@ class AuthorModel(Base):
     name = Column(String, nullable=False)
     bio = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow
+    )
 
-    books = relationship("BookModel", back_populates="author", cascade="all, delete-orphan")
+    books = relationship("BookModel", back_populates="author")

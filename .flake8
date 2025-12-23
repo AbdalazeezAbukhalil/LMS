@@ -1,0 +1,19 @@
+[flake8]
+max-line-length = 100
+extend-ignore = E203, E266, E501, W503, F403, F401
+max-complexity = 18
+select = B,C,E,F,W,T4,B9
+
+# Comma-separated list of directories and files to skip
+exclude =
+    .git,
+    __pycache__,
+    docs/source/conf.py,
+    old,
+    build,
+    dist,
+    venv,
+    .venv,
+    myenv,
+    # Ignore specific files
+    temp_script.py

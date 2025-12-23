@@ -3,6 +3,7 @@ from typing import List
 from uuid import UUID
 from APP.domain.entities.books import Book
 
+
 class BookRepository(ABC):
 
     @abstractmethod

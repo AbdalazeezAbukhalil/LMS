@@ -7,10 +7,12 @@ from typing import List
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from APP.models.book_model import BookModel
+
+
 class BookSQLRepository(BookRepository):
     def __init__(self, session: Session):
-        self.session=session
-    
+        self.session = session
+
     async def create_book(self, book: Book) -> Book:
         db_book = BookModel(
             id=book.id,
@@ -19,13 +21,13 @@ class BookSQLRepository(BookRepository):
             published_date=book.published_date,
             author_id=book.author_id,
             created_at=book.created_at,
-            updated_at=book.updated_at
+            updated_at=book.updated_at,
         )
         self.session.add(db_book)
         try:
             await self.session.commit()
             await self.session.refresh(db_book)
-        except IntegrityError:                         ## Handle unique constraint violation
+        except IntegrityError:  # Handle unique constraint violation
             await self.session.rollback()
             raise HTTPException(status_code=400, detail="ISBN already exists")
         return Book(
@@ -35,21 +37,24 @@ class BookSQLRepository(BookRepository):
             published_date=db_book.published_date,
             author_id=db_book.author_id,
             created_at=db_book.created_at,
-            updated_at=db_book.updated_at
+            updated_at=db_book.updated_at,
         )
-    
+
     async def get_books(self) -> List[Book]:
         result = await self.session.execute(select(BookModel))
         books = result.scalars().all()
-        return [Book(
-            id=b.id,
-            title=b.title,
-            ISBN=b.ISBN,
-            published_date=b.published_date,
-            author_id=b.author_id,
-            created_at=b.created_at,
-            updated_at=b.updated_at
-        ) for b in books]
+        return [
+            Book(
+                id=b.id,
+                title=b.title,
+                ISBN=b.ISBN,
+                published_date=b.published_date,
+                author_id=b.author_id,
+                created_at=b.created_at,
+                updated_at=b.updated_at,
+            )
+            for b in books
+        ]
 
     async def get_book_details(self, book_id: UUID) -> Book:
         b = await self.session.get(BookModel, book_id)
@@ -62,7 +67,7 @@ class BookSQLRepository(BookRepository):
             published_date=b.published_date,
             author_id=b.author_id,
             created_at=b.created_at,
-            updated_at=b.updated_at
+            updated_at=b.updated_at,
         )
 
     async def update_book(self, book_id: UUID, book: Book) -> Book:
@@ -76,7 +81,7 @@ class BookSQLRepository(BookRepository):
         try:
             await self.session.commit()
             await self.session.refresh(db_book)
-        except IntegrityError:                         ## Handle unique constraint violation
+        except IntegrityError:  # Handle unique constraint violation
             await self.session.rollback()
             raise HTTPException(status_code=400, detail="ISBN already exists")
 
@@ -87,7 +92,7 @@ class BookSQLRepository(BookRepository):
             published_date=db_book.published_date,
             author_id=db_book.author_id,
             created_at=db_book.created_at,
-            updated_at=db_book.updated_at
+            updated_at=db_book.updated_at,
         )
 
     async def delete_book(self, book_id: UUID) -> None:

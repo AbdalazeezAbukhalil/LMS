@@ -10,14 +10,26 @@ from APP.core.dependency_injection import get_loan_service
 from APP.schemas.loans_schemas import LoanCreateSchema, LoanReadSchema
 from APP.domain.entities.Loans import Loan
 from APP.services.loans_service import LoanService
+from APP.core.security.dependencies import verify_jwt, get_current_user
+from APP.models.user_model import UserModel
 
 router = APIRouter()
 
+
 @router.get("/loans/", response_model=List[LoanReadSchema])
-async def get_loans(service: LoanService = Depends(get_loan_service)) -> List[Loan]:
+async def get_loans(
+    service: LoanService = Depends(get_loan_service),
+    current_user: UserModel = Depends(get_current_user),
+) -> List[Loan]:
     return await service.get_loans()
+
+
 @router.post("/loans", response_model=LoanReadSchema)
-async def create_loan(loan: LoanCreateSchema, service: LoanService = Depends(get_loan_service)):
+async def create_loan(
+    loan: LoanCreateSchema,
+    service: LoanService = Depends(get_loan_service),
+    current_user: UserModel = Depends(get_current_user),
+):
     entity = Loan(
         id=uuid4(),
         book_id=loan.book_id,
@@ -25,14 +37,16 @@ async def create_loan(loan: LoanCreateSchema, service: LoanService = Depends(get
         loan_date=datetime.utcnow(),
         return_date=None,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
     return await service.create_loan(entity)
+
 
 @router.get("/loans/{borrower_id}", response_model=List[LoanReadSchema])
 async def get_loans_history_for_borrower(
     borrower_id: UUID,
-    service: LoanService = Depends(get_loan_service)
+    service: LoanService = Depends(get_loan_service),
+    current_user: UserModel = Depends(get_current_user),
 ):
     loans = await service.get_loans_for_borrower(borrower_id)  # returns List[Loan]
     if not loans:
@@ -40,17 +54,22 @@ async def get_loans_history_for_borrower(
 
     return [
         LoanReadSchema(
-            id=l.id,
-            book_id=l.book_id,
-            borrower_id=l.borrower_id,
-            loan_date=l.loan_date,
-            return_date=l.return_date,
-            created_at=l.created_at,
-            updated_at=l.updated_at
+            id=loan.id,
+            book_id=loan.book_id,
+            borrower_id=loan.borrower_id,
+            loan_date=loan.loan_date,
+            return_date=loan.return_date,
+            created_at=loan.created_at,
+            updated_at=loan.updated_at,
         )
-        for l in loans
+        for loan in loans
     ]
 
+
 @router.put("/loans/{id}", response_model=LoanReadSchema)
-async def set_returned_date(id: UUID, service: LoanService = Depends(get_loan_service)):
+async def set_returned_date(
+    id: UUID,
+    service: LoanService = Depends(get_loan_service),
+    current_user: UserModel = Depends(get_current_user),
+):
     return await service.set_returned(id)

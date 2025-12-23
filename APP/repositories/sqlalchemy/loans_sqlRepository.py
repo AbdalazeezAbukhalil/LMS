@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from datetime import datetime
 from APP.schemas.loans_schemas import LoanReadSchema
 
+
 class LoansSQLRepository(LoansRepository):
     def __init__(self, session: Session):
         self.session = session
@@ -22,7 +23,7 @@ class LoansSQLRepository(LoansRepository):
             loan_date=loan.loan_date,
             return_date=loan.return_date,
             created_at=loan.created_at,
-            updated_at=loan.updated_at
+            updated_at=loan.updated_at,
         )
         self.session.add(db_loan)
         await self.session.commit()
@@ -34,36 +35,42 @@ class LoansSQLRepository(LoansRepository):
             loan_date=db_loan.loan_date,
             return_date=db_loan.return_date,
             created_at=db_loan.created_at,
-            updated_at=db_loan.updated_at
+            updated_at=db_loan.updated_at,
         )
 
     async def get_loans(self) -> List[Loan]:
         result = await self.session.execute(select(LoanModel))
         loans = result.scalars().all()
-        return [Loan(
-            id=l.id,
-            book_id=l.book_id,
-            borrower_id=l.borrower_id,
-            loan_date=l.loan_date,
-            return_date=l.return_date,
-            created_at=l.created_at,
-            updated_at=l.updated_at
-        ) for l in loans]
+        return [
+            Loan(
+                id=loan.id,
+                book_id=loan.book_id,
+                borrower_id=loan.borrower_id,
+                loan_date=loan.loan_date,
+                return_date=loan.return_date,
+                created_at=loan.created_at,
+                updated_at=loan.updated_at,
+            )
+            for loan in loans
+        ]
 
     async def get_loans_for_borrower(self, borrower_id: UUID) -> List[Loan]:
         result = await self.session.execute(
             select(LoanModel).where(LoanModel.borrower_id == borrower_id)
         )
         loans = result.scalars().all()
-        return [Loan(
-            id=l.id,
-            book_id=l.book_id,
-            borrower_id=l.borrower_id,
-            loan_date=l.loan_date,
-            return_date=l.return_date,
-            created_at=l.created_at,
-            updated_at=l.updated_at
-        ) for l in loans]
+        return [
+            Loan(
+                id=loan.id,
+                book_id=loan.book_id,
+                borrower_id=loan.borrower_id,
+                loan_date=loan.loan_date,
+                return_date=loan.return_date,
+                created_at=loan.created_at,
+                updated_at=loan.updated_at,
+            )
+            for loan in loans
+        ]
 
     async def set_returned(self, loan_id: UUID) -> Loan:
         db_loan = await self.session.get(LoanModel, loan_id)
@@ -83,13 +90,13 @@ class LoansSQLRepository(LoansRepository):
             loan_date=db_loan.loan_date,
             return_date=db_loan.return_date,
             created_at=db_loan.created_at,
-            updated_at=db_loan.updated_at
+            updated_at=db_loan.updated_at,
         )
+
     async def has_active_loan_for_book(self, book_id: UUID) -> bool:
-        
+
         stmt = select(LoanModel).where(
-            LoanModel.book_id == book_id,
-            LoanModel.return_date.is_(None)
+            LoanModel.book_id == book_id, LoanModel.return_date.is_(None)
         )
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none() is not None    
+        return result.scalar_one_or_none() is not None

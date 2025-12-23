@@ -6,6 +6,7 @@ import uuid
 
 from APP.core.database import Base
 
+
 class LoanModel(Base):
     __tablename__ = "loans"
 
@@ -15,7 +16,9 @@ class LoanModel(Base):
     loan_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     return_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
     book = relationship("BookModel", back_populates="loans")
     borrower = relationship("BorrowerModel", back_populates="loans")
