@@ -1,12 +1,14 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.future import select
-from APP.domain.entities.books import Book
-from APP.repositories.Interfaces.book_repositories import BookRepository
-from uuid import UUID
 from typing import List
-from sqlalchemy.exc import IntegrityError
+from uuid import UUID
+
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.future import select
+from sqlalchemy.orm import Session, joinedload
+
+from APP.domain.entities.books import Book
 from APP.models.book_model import BookModel
+from APP.repositories.Interfaces.book_repositories import BookRepository
 
 
 class BookSQLRepository(BookRepository):
@@ -30,18 +32,12 @@ class BookSQLRepository(BookRepository):
         except IntegrityError:  # Handle unique constraint violation
             await self.session.rollback()
             raise HTTPException(status_code=400, detail="ISBN already exists")
-        return Book(
-            id=db_book.id,
-            title=db_book.title,
-            ISBN=db_book.ISBN,
-            published_date=db_book.published_date,
-            author_id=db_book.author_id,
-            created_at=db_book.created_at,
-            updated_at=db_book.updated_at,
-        )
+
+        return await self.get_book_details(db_book.id)
 
     async def get_books(self) -> List[Book]:
-        result = await self.session.execute(select(BookModel))
+        stmt = select(BookModel).options(joinedload(BookModel.author))
+        result = await self.session.execute(stmt)
         books = result.scalars().all()
         return [
             Book(
@@ -52,12 +48,19 @@ class BookSQLRepository(BookRepository):
                 author_id=b.author_id,
                 created_at=b.created_at,
                 updated_at=b.updated_at,
+                author_name=b.author.name if b.author else "Unknown",
             )
             for b in books
         ]
 
     async def get_book_details(self, book_id: UUID) -> Book:
-        b = await self.session.get(BookModel, book_id)
+        stmt = (
+            select(BookModel)
+            .options(joinedload(BookModel.author))
+            .where(BookModel.id == book_id)
+        )
+        result = await self.session.execute(stmt)
+        b = result.scalar_one_or_none()
         if b is None:
             return None
         return Book(
@@ -68,6 +71,7 @@ class BookSQLRepository(BookRepository):
             author_id=b.author_id,
             created_at=b.created_at,
             updated_at=b.updated_at,
+            author_name=b.author.name if b.author else "Unknown",
         )
 
     async def update_book(self, book_id: UUID, book: Book) -> Book:
@@ -85,15 +89,7 @@ class BookSQLRepository(BookRepository):
             await self.session.rollback()
             raise HTTPException(status_code=400, detail="ISBN already exists")
 
-        return Book(
-            id=db_book.id,
-            title=db_book.title,
-            ISBN=db_book.ISBN,
-            published_date=db_book.published_date,
-            author_id=db_book.author_id,
-            created_at=db_book.created_at,
-            updated_at=db_book.updated_at,
-        )
+        return await self.get_book_details(db_book.id)
 
     async def delete_book(self, book_id: UUID) -> None:
         db_book = await self.session.get(BookModel, book_id)

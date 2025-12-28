@@ -1,12 +1,16 @@
+from typing import List
+from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from uuid import UUID
-from typing import List
+from sqlalchemy.orm import selectinload
+
 from APP.domain.entities.author import Author
-from APP.repositories.Interfaces.author_repositories import AuthorRepository
+from APP.domain.entities.books import Book
 from APP.models.author_model import AuthorModel
 from APP.models.book_model import BookModel
 from APP.models.loans_model import LoanModel
+from APP.repositories.Interfaces.author_repositories import AuthorRepository
 
 
 class AuthorSQLRepository(AuthorRepository):
@@ -14,7 +18,8 @@ class AuthorSQLRepository(AuthorRepository):
         self.session = session
 
     async def get_authors(self) -> List[Author]:
-        result = await self.session.execute(select(AuthorModel))
+        comp = select(AuthorModel).options(selectinload(AuthorModel.books))
+        result = await self.session.execute(comp)
         authors = result.scalars().all()
         return [
             Author(
@@ -23,12 +28,26 @@ class AuthorSQLRepository(AuthorRepository):
                 bio=a.bio,
                 created_at=a.created_at,
                 updated_at=a.updated_at,
+                books=[
+                    Book(
+                        id=b.id,
+                        title=b.title,
+                        ISBN=b.ISBN,
+                        published_date=b.published_date,
+                        author_id=b.author_id,
+                        created_at=b.created_at,
+                        updated_at=b.updated_at,
+                    )
+                    for b in (a.books or [])
+                ],
             )
             for a in authors
         ]
 
     async def get_author_details(self, author_id: UUID) -> Author:
-        a = await self.session.get(AuthorModel, author_id)
+        a = await self.session.get(
+            AuthorModel, author_id, options=[selectinload(AuthorModel.books)]
+        )
         if a is None:
             return None
         return Author(
@@ -37,6 +56,18 @@ class AuthorSQLRepository(AuthorRepository):
             bio=a.bio,
             created_at=a.created_at,
             updated_at=a.updated_at,
+            books=[
+                Book(
+                    id=b.id,
+                    title=b.title,
+                    ISBN=b.ISBN,
+                    published_date=b.published_date,
+                    author_id=b.author_id,
+                    created_at=b.created_at,
+                    updated_at=b.updated_at,
+                )
+                for b in (a.books or [])
+            ],
         )
 
     async def create_author(self, author: Author) -> Author:

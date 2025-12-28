@@ -1,12 +1,14 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from APP.core.database import get_db
+from APP.core.security.passwords import hash_password
+from APP.models.user_model import UserModel
+from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
 from APP.schemas.auth_schema import LoginRequest, LoginResponse
 from APP.services.auth_service import AuthService
-from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
-from APP.core.database import get_db
-from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import uuid4
-from APP.models.user_model import UserModel
-from APP.core.security.passwords import hash_password
 
 router = APIRouter()
 

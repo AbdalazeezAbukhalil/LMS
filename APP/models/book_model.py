@@ -1,9 +1,11 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
-from APP.core.database import Base
+
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
+from APP.core.database import Base
 
 
 class BookModel(Base):
@@ -26,4 +28,6 @@ class BookModel(Base):
     )
     author = relationship("AuthorModel", back_populates="books")
 
-    loans = relationship("LoanModel", back_populates="book")
+    loans = relationship(
+        "LoanModel", back_populates="book", cascade="all, delete-orphan"
+    )

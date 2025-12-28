@@ -1,8 +1,9 @@
+from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from uuid import UUID
+
 from APP.models.user_model import UserModel
-from fastapi import HTTPException
 
 
 class UserSQLRepository:

@@ -1,9 +1,11 @@
-from sqlalchemy import Column, String, DateTime
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
-from APP.core.database import Base
+
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
+from APP.core.database import Base
 
 
 class AuthorModel(Base):

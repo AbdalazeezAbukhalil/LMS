@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
-from uuid import UUID
+from datetime import timedelta
 
-from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
-from APP.core.security.passwords import verify_password
 from APP.core.security.jwt import create_access_token
+from APP.core.security.passwords import verify_password
+from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
 
 
 class AuthService:

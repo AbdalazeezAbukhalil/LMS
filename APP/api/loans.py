@@ -1,17 +1,17 @@
-from fastapi import APIRouter, Depends
-from typing import List
-from uuid import uuid4, UUID
 from datetime import datetime
+from typing import List
+from uuid import UUID, uuid4
 
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from APP.core.dependency_injection import get_loan_service
+from APP.core.security.dependencies import get_current_user, verify_jwt
+from APP.domain.entities.Loans import Loan
+from APP.models.user_model import UserModel
+from APP.schemas.loans_schemas import LoanCreateSchema, LoanReadSchema
 from APP.services.book_service import BookService
 from APP.services.borrower_service import BorrowerService
-from APP.core.dependency_injection import get_loan_service
-from APP.schemas.loans_schemas import LoanCreateSchema, LoanReadSchema
-from APP.domain.entities.Loans import Loan
 from APP.services.loans_service import LoanService
-from APP.core.security.dependencies import verify_jwt, get_current_user
-from APP.models.user_model import UserModel
 
 router = APIRouter()
 
@@ -21,15 +21,32 @@ async def get_loans(
     service: LoanService = Depends(get_loan_service),
     current_user: UserModel = Depends(get_current_user),
 ) -> List[Loan]:
+    """
+    Retrieve a list of all active and past loans.
+    """
     return await service.get_loans()
 
 
-@router.post("/loans", response_model=LoanReadSchema)
+@router.get("/loans/active", response_model=List[LoanReadSchema])
+async def get_active_loans(
+    service: LoanService = Depends(get_loan_service),
+    current_user: UserModel = Depends(get_current_user),
+) -> List[Loan]:
+    """
+    Retrieve a list of all active (not returned) loans.
+    """
+    return await service.get_active_loans()
+
+
+@router.post("/loans/create", response_model=LoanReadSchema)
 async def create_loan(
     loan: LoanCreateSchema,
     service: LoanService = Depends(get_loan_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Create a new loan record (borrow a book).
+    """
     entity = Loan(
         id=uuid4(),
         book_id=loan.book_id,
@@ -42,12 +59,15 @@ async def create_loan(
     return await service.create_loan(entity)
 
 
-@router.get("/loans/{borrower_id}", response_model=List[LoanReadSchema])
+@router.get(
+    "/loans/history/borrower/{borrower_id}", response_model=List[LoanReadSchema]
+)
 async def get_loans_history_for_borrower(
-    borrower_id: UUID,
-    service: LoanService = Depends(get_loan_service),
-    current_user: UserModel = Depends(get_current_user),
+    borrower_id: UUID, service: LoanService = Depends(get_loan_service)
 ):
+    """
+    Retrieve the loan history for a specific borrower.
+    """
     loans = await service.get_loans_for_borrower(borrower_id)  # returns List[Loan]
     if not loans:
         raise HTTPException(status_code=404, detail="No loans found for this borrower")
@@ -66,10 +86,10 @@ async def get_loans_history_for_borrower(
     ]
 
 
-@router.put("/loans/{id}", response_model=LoanReadSchema)
-async def set_returned_date(
-    id: UUID,
-    service: LoanService = Depends(get_loan_service),
-    current_user: UserModel = Depends(get_current_user),
-):
+@router.put("/loans/return/{id}", response_model=LoanReadSchema)
+async def set_returned_date(id: UUID, service: LoanService = Depends(get_loan_service)):
+    
+    """
+    Mark a loan as returned by setting the return date to now.
+    """
     return await service.set_returned(id)

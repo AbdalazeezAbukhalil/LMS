@@ -1,12 +1,14 @@
-from fastapi import HTTPException, Depends, Header, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
-from APP.core.security.jwt import verify_token
-from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
-from sqlalchemy.ext.asyncio import AsyncSession
-from APP.core.database import get_db
-from APP.models.user_model import UserModel
-from APP.core.config import settings
 from uuid import UUID
+
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from APP.core.config import settings
+from APP.core.database import get_db
+from APP.core.security.jwt import verify_token
+from APP.models.user_model import UserModel
+from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
 
 security = HTTPBearer()
 api_key_header = APIKeyHeader(name="x-api-key")

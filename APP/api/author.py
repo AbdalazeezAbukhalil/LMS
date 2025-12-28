@@ -1,37 +1,44 @@
-from fastapi import APIRouter, Depends
-from typing import List
-from uuid import uuid4, UUID
 from datetime import datetime
+from typing import List
+from uuid import UUID, uuid4
 
-from fastapi import HTTPException
-from APP.services.author_service import AuthorService
+from fastapi import APIRouter, Depends, HTTPException
+
 from APP.core.dependency_injection import get_author_service
+from APP.core.security.dependencies import get_current_user
+from APP.domain.entities.author import Author
+from APP.models.user_model import UserModel
 from APP.schemas.author_schemas import (
     AuthorCreateSchema,
-    AuthorUpdateSchema,
     AuthorReadSchema,
+    AuthorUpdateSchema,
+    AuthorWithBooksSchema,
 )
-from APP.domain.entities.author import Author
-from APP.core.security.dependencies import verify_jwt, get_current_user
-from APP.models.user_model import UserModel
+from APP.services.author_service import AuthorService
 
 router = APIRouter()
 
 
-@router.get("/authors", response_model=List[AuthorReadSchema])
+@router.get("/authors", response_model=List[AuthorWithBooksSchema])
 async def get_authors(
     service: AuthorService = Depends(get_author_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Retrieve a list of all authors with their associated books.
+    """
     return await service.get_authors()
 
 
-@router.get("/authors/{author_id}", response_model=AuthorReadSchema)
+@router.get("/authors/{author_id}", response_model=AuthorWithBooksSchema)
 async def get_author_details(
     author_id: UUID,
     service: AuthorService = Depends(get_author_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Retrieve detailed information about a specific author, including their books.
+    """
     author_details = await service.get_author_details(author_id)
     if not author_details:
         raise HTTPException(status_code=404, detail="Author not found")
@@ -44,6 +51,9 @@ async def create_author(
     service: AuthorService = Depends(get_author_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Create a new author record.
+    """
     entity = Author(
         id=uuid4(),
         name=author.name,
@@ -61,6 +71,9 @@ async def update_author(
     service: AuthorService = Depends(get_author_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Update an existing author's information.
+    """
     author_details = await service.get_author_details(author_id)
     if not author_details:
         raise HTTPException(status_code=404, detail="Author not found")
@@ -80,6 +93,9 @@ async def delete_author(
     service: AuthorService = Depends(get_author_service),
     current_user: UserModel = Depends(get_current_user),
 ):
+    """
+    Delete an author record.
+    """
     author_details = await service.get_author_details(author_id)
     if not author_details:
         raise HTTPException(status_code=404, detail="Author not found")

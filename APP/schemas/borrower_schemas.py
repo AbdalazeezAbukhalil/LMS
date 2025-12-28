@@ -1,8 +1,11 @@
-from pydantic import BaseModel, EmailStr, Field, BeforeValidator, AfterValidator
-from uuid import UUID
-from datetime import datetime
-from typing import Annotated
 import re
+from datetime import datetime
+from typing import Annotated, List
+from uuid import UUID
+
+from pydantic import AfterValidator, BaseModel, BeforeValidator, EmailStr, Field
+
+from APP.schemas.loans_schemas import LoanReadSchema
 
 
 def clean_phone_number(v: str) -> str:
@@ -29,26 +32,30 @@ PhoneStr = Annotated[
 
 
 class BorrowerBaseSchema(BaseModel):
-    name: str
-    email: EmailStr
-    phone: PhoneStr
     created_at: datetime
+    email: EmailStr
+    name: str
+    phone: PhoneStr
     updated_at: datetime
 
 
 class BorrowerCreateSchema(BaseModel):
-    name: str
     email: EmailStr
+    name: str
     phone: PhoneStr
 
 
 class BorrowerUpdateSchema(BaseModel):
-    name: str
     email: EmailStr
+    name: str
     phone: PhoneStr
 
 
 class BorrowerReadSchema(BorrowerBaseSchema):
-    id: UUID
     created_at: datetime
+    id: UUID
     updated_at: datetime
+
+
+class BorrowerWithLoansSchema(BorrowerReadSchema):
+    loans: List[LoanReadSchema] = []

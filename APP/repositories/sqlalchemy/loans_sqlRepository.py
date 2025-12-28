@@ -1,13 +1,14 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.future import select
-from APP.domain.entities.Loans import Loan
-from APP.repositories.Interfaces.loans_repository import LoansRepository
-from uuid import UUID
-from typing import List
-from APP.models.loans_model import LoanModel
-from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException
 from datetime import datetime
+from typing import List
+from uuid import UUID
+
+from fastapi import HTTPException
+from sqlalchemy.future import select
+from sqlalchemy.orm import Session
+
+from APP.domain.entities.Loans import Loan
+from APP.models.loans_model import LoanModel
+from APP.repositories.Interfaces.loans_repository import LoansRepository
 from APP.schemas.loans_schemas import LoanReadSchema
 
 
@@ -57,6 +58,24 @@ class LoansSQLRepository(LoansRepository):
     async def get_loans_for_borrower(self, borrower_id: UUID) -> List[Loan]:
         result = await self.session.execute(
             select(LoanModel).where(LoanModel.borrower_id == borrower_id)
+        )
+        loans = result.scalars().all()
+        return [
+            Loan(
+                id=loan.id,
+                book_id=loan.book_id,
+                borrower_id=loan.borrower_id,
+                loan_date=loan.loan_date,
+                return_date=loan.return_date,
+                created_at=loan.created_at,
+                updated_at=loan.updated_at,
+            )
+            for loan in loans
+        ]
+
+    async def get_active_loans(self) -> List[Loan]:
+        result = await self.session.execute(
+            select(LoanModel).where(LoanModel.return_date.is_(None))
         )
         loans = result.scalars().all()
         return [

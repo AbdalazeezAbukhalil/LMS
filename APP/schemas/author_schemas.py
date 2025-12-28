@@ -1,11 +1,15 @@
-from pydantic import BaseModel
-from uuid import UUID
 from datetime import datetime
+from typing import List
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+from APP.schemas.book_schema import BookReadSchema
 
 
 class AuthorBaseSchema(BaseModel):
-    name: str
-    bio: str
+    bio: str = Field(..., min_length=10)
+    name: str = Field(..., min_length=2)
 
 
 class AuthorCreateSchema(AuthorBaseSchema):
@@ -17,9 +21,13 @@ class AuthorUpdateSchema(AuthorBaseSchema):
 
 
 class AuthorReadSchema(AuthorBaseSchema):
-    id: UUID
     created_at: datetime
+    id: UUID
     updated_at: datetime
 
     class Config:
         orm_mode = True
+
+
+class AuthorWithBooksSchema(AuthorReadSchema):
+    books: List[BookReadSchema] = []

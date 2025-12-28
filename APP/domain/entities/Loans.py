@@ -1,14 +1,14 @@
-from uuid import UUID
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID
 
 
 @dataclass
 class Loan:
-    id: UUID
     book_id: UUID
     borrower_id: UUID
+    created_at: datetime
+    id: UUID
     loan_date: datetime
     return_date: datetime
-    created_at: datetime
     updated_at: datetime

@@ -1,9 +1,9 @@
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
-from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config, pool
+
 from alembic import context
 from APP.core.database import Base
 from APP.models.author_model import AuthorModel  # author
@@ -11,7 +11,6 @@ from APP.models.book_model import BookModel  # book
 from APP.models.borrower_model import BorrowerModel  # borrower
 from APP.models.loans_model import LoanModel  # loan
 from APP.models.user_model import UserModel  # user
-from APP.models.api_key_model import ApiKeyModel  # api key
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 

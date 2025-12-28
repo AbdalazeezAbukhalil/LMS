@@ -6,9 +6,10 @@ Create Date: 2025-12-22 14:18:44.123325
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "944857e9fd10"
@@ -28,7 +29,6 @@ def upgrade():
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.drop_table("nexus_init_status")
     # ### end Alembic commands ###
 
 
