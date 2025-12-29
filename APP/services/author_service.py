@@ -2,7 +2,13 @@
 from typing import List
 from uuid import UUID
 
+from APP.core.events import dispatch_event
 from APP.domain.entities.author import Author
+from APP.domain.events.domain_events import (
+    AuthorCreated,
+    AuthorDeleted,
+    AuthorUpdated,
+)
 from APP.domain.exceptions import AuthorDeletionError
 from APP.repositories.Interfaces.author_repositories import AuthorRepository
 
@@ -31,13 +37,27 @@ class AuthorService:
         """
         Create a new author record.
         """
-        return await self.author_repository.create_author(author)
+        created_author = await self.author_repository.create_author(author)
+        dispatch_event(
+            AuthorCreated(
+                author_id=created_author.id,
+                data={"name": created_author.name, "bio": created_author.bio},
+            )
+        )
+        return created_author
 
     async def update_author(self, author_id: UUID, author: Author) -> Author:
         """
         Update an existing author's details.
         """
-        return await self.author_repository.update_author(author_id, author)
+        updated_author = await self.author_repository.update_author(author_id, author)
+        dispatch_event(
+            AuthorUpdated(
+                author_id=updated_author.id,
+                data={"name": updated_author.name, "bio": updated_author.bio},
+            )
+        )
+        return updated_author
 
     async def delete_author(self, author_id: UUID) -> None:
         """
@@ -51,4 +71,5 @@ class AuthorService:
             raise AuthorDeletionError(
                 "Cannot delete author because they have books in the library."
             )
-        return await self.author_repository.delete_author(author_id)
+        await self.author_repository.delete_author(author_id)
+        dispatch_event(AuthorDeleted(author_id=author_id, data={}))
