@@ -1,9 +1,12 @@
 from fastapi import Depends, FastAPI
 
 from APP.api import auth, author, book, borrower, loans
+from APP.api.exception_handlers import register_exception_handlers
 from APP.core.security.dependencies import verify_api_key, verify_jwt
 
-APP = FastAPI(title="Library API")
+APP = FastAPI(title="Library Management System")
+
+register_exception_handlers(APP)
 
 APP.include_router(auth.router, tags=["Auth"])
 

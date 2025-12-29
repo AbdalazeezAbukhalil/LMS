@@ -1,9 +1,12 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import HTTPException
-
 from APP.domain.entities.Loans import Loan
+from APP.domain.exceptions import (
+    BookAlreadyLoanedError,
+    BookNotFoundError,
+    BorrowerNotFoundError,
+)
 from APP.repositories.Interfaces.loans_repository import LoansRepository
 from APP.schemas.loans_schemas import LoanReadSchema
 from APP.services.book_service import BookService
@@ -37,12 +40,6 @@ class LoanService:
         """
         return await self.loans_repository.get_active_loans()
 
-    async def get_active_loans(self) -> List[Loan]:
-        """
-        Retrieve all active (not returned) loans from the repository.
-        """
-        return await self.loans_repository.get_active_loans()
-
     async def create_loan(self, loan: Loan) -> Loan:
         """
         Create a new loan record, ensuring the book and borrower exist and the book is available.
@@ -50,21 +47,18 @@ class LoanService:
         # Check if book exists
         book = await self.book_service.get_book_details(loan.book_id)
         if not book:
-            raise HTTPException(status_code=404, detail="Book not found")
+            raise BookNotFoundError(loan.book_id)
 
         borrower = await self.borrower_service.get_borrower_details(
             loan.borrower_id
         )  # Check if borrower exists
         if not borrower:
-            raise HTTPException(status_code=404, detail="Borrower not found")
+            raise BorrowerNotFoundError(loan.borrower_id)
 
         if await self.loans_repository.has_active_loan_for_book(
             loan.book_id
         ):  # cehck if the book is loaned (active)
-            raise HTTPException(
-                status_code=409,
-                detail="This book already has an active loan",
-            )
+            raise BookAlreadyLoanedError(loan.book_id)
         return await self.loans_repository.create_loan(loan)
 
     async def get_loans_for_borrower(self, borrower_id: UUID) -> List[Loan]:

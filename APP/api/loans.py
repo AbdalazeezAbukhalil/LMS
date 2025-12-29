@@ -5,12 +5,10 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException
 
 from APP.core.dependency_injection import get_loan_service
-from APP.core.security.dependencies import get_current_user, verify_jwt
+from APP.core.security.dependencies import get_current_user
 from APP.domain.entities.Loans import Loan
 from APP.models.user_model import UserModel
 from APP.schemas.loans_schemas import LoanCreateSchema, LoanReadSchema
-from APP.services.book_service import BookService
-from APP.services.borrower_service import BorrowerService
 from APP.services.loans_service import LoanService
 
 router = APIRouter()
@@ -88,7 +86,6 @@ async def get_loans_history_for_borrower(
 
 @router.put("/loans/return/{id}", response_model=LoanReadSchema)
 async def set_returned_date(id: UUID, service: LoanService = Depends(get_loan_service)):
-    
     """
     Mark a loan as returned by setting the return date to now.
     """

@@ -1,12 +1,12 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session, joinedload
 
 from APP.domain.entities.books import Book
+from APP.domain.exceptions import ISBNAlreadyExistsError
 from APP.models.book_model import BookModel
 from APP.repositories.Interfaces.book_repositories import BookRepository
 
@@ -31,7 +31,7 @@ class BookSQLRepository(BookRepository):
             await self.session.refresh(db_book)
         except IntegrityError:  # Handle unique constraint violation
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="ISBN already exists")
+            raise ISBNAlreadyExistsError(book.ISBN)
 
         return await self.get_book_details(db_book.id)
 
@@ -87,7 +87,7 @@ class BookSQLRepository(BookRepository):
             await self.session.refresh(db_book)
         except IntegrityError:  # Handle unique constraint violation
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="ISBN already exists")
+            raise ISBNAlreadyExistsError(book.ISBN)
 
         return await self.get_book_details(db_book.id)
 

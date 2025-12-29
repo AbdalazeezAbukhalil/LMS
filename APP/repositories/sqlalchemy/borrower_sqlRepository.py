@@ -1,13 +1,13 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session, selectinload
 
 from APP.domain.entities.Borrowers import Borrower
 from APP.domain.entities.Loans import Loan
+from APP.domain.exceptions import EmailAlreadyInUseError
 from APP.models.borrower_model import BorrowerModel
 from APP.repositories.Interfaces.borrower_repository import BorrowerRepository
 
@@ -60,7 +60,7 @@ class BorrowerSQLRepository(BorrowerRepository):
             await self.session.refresh(db_borrower)
         except IntegrityError:
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="Email already exists")
+            raise EmailAlreadyInUseError(borrower.email)
 
         return Borrower(
             id=db_borrower.id,
@@ -82,7 +82,7 @@ class BorrowerSQLRepository(BorrowerRepository):
             await self.session.refresh(db_borrower)
         except IntegrityError:
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="Email already exists")
+            raise EmailAlreadyInUseError(borrower.email)
 
         return Borrower(
             id=db_borrower.id,

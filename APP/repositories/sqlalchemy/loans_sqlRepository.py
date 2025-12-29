@@ -2,11 +2,11 @@ from datetime import datetime
 from typing import List
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from APP.domain.entities.Loans import Loan
+from APP.domain.exceptions import LoanAlreadyReturnedError, LoanNotFoundError
 from APP.models.loans_model import LoanModel
 from APP.repositories.Interfaces.loans_repository import LoansRepository
 from APP.schemas.loans_schemas import LoanReadSchema
@@ -94,9 +94,9 @@ class LoansSQLRepository(LoansRepository):
     async def set_returned(self, loan_id: UUID) -> Loan:
         db_loan = await self.session.get(LoanModel, loan_id)
         if db_loan is None:
-            raise HTTPException(status_code=404, detail="Loan not found")
+            raise LoanNotFoundError(loan_id)
         if db_loan.return_date is not None:
-            raise HTTPException(status_code=400, detail="Loan is already returned")
+            raise LoanAlreadyReturnedError(loan_id)
 
         db_loan.return_date = datetime.utcnow()
         db_loan.updated_at = datetime.utcnow()

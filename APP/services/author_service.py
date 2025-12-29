@@ -2,9 +2,8 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import HTTPException
-
 from APP.domain.entities.author import Author
+from APP.domain.exceptions import AuthorDeletionError
 from APP.repositories.Interfaces.author_repositories import AuthorRepository
 
 
@@ -45,13 +44,11 @@ class AuthorService:
         Delete an author if they have no books or loan history.
         """
         if await self.author_repository.has_loans(author_id):
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot delete author because one of their books has/had a loan.",
+            raise AuthorDeletionError(
+                "Cannot delete author because one of their books has/had a loan."
             )
         if await self.author_repository.has_books(author_id):
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot delete author because they have books in the library.",
+            raise AuthorDeletionError(
+                "Cannot delete author because they have books in the library."
             )
         return await self.author_repository.delete_author(author_id)
