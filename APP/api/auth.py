@@ -9,6 +9,8 @@ from APP.models.user_model import UserModel
 from APP.repositories.sqlalchemy.users_sqlRepository import UserSQLRepository
 from APP.schemas.auth_schema import LoginRequest, LoginResponse
 from APP.services.auth_service import AuthService
+from APP.core.events import dispatch_internal_event
+from APP.core.internal_events import AuthFailed
 
 router = APIRouter()
 
@@ -26,7 +28,14 @@ async def login(
 ):
     user = await service.authenticate_user(request.username, request.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        await dispatch_internal_event(
+            AuthFailed(
+                component="Security",
+                reason="Missing credentials",
+                data={"auth_type": "Authentication"},
+            )
+        )
+        raise HTTPException(status_code=401, detail="Missing credentials")
 
     token = await service.login_user(user)
     return LoginResponse(access_token=token)

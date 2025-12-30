@@ -1,12 +1,8 @@
-from pydantic import BaseModel
-from uuid import UUID
+from pydantic import BaseModel, Field
 from datetime import datetime
 
-from datetime import datetime
 from typing import Any, Dict
 from uuid import UUID, uuid4
-
-from pydantic import BaseModel, Field
 
 
 class DomainEvent(BaseModel):
